@@ -24,15 +24,19 @@ int i, j, k;
   lda is the leading dimension of the matrix (the M of square_dgemm).
 */
 
+// J = columns of C
+// 
 void basic_dgemm(const int lda, const int M, const int N, const int K,
                  const double* restrict A, const double* restrict B, double* restrict C)
 {
     int i, j, k;
     double storeBCol[K];
-    for (j = 0; j < N; ++j) {
+    for (j = 0; j < N; ++j) {   //scrols through columns of C
         for (k = 0; k < K; ++k) {   //scrolls through rows of B
              storeBCol[k] = B[j*lda+k]; //storing current B column
         }
+        //each column of J uses the same column of B, so store it
+
         for (k = 0; k < K; ++k) {
             for (i = 0; i < M; ++i) {
                  C[j*lda + i]+= A[k*lda+i] * storeBCol[k];
