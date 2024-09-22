@@ -15,14 +15,27 @@ int i, j, k;
 	}
 }
 */
+
+/* matricies are labeled ROW x COL
+  A is M-by-K
+  B is K-by-N
+  C is M-by-N
+
+  lda is the leading dimension of the matrix (the M of square_dgemm).
+*/
+
 void basic_dgemm(const int lda, const int M, const int N, const int K,
                  const double* restrict A, const double* restrict B, double* restrict C)
 {
     int i, j, k;
+    double storeBCol[K];
     for (j = 0; j < N; ++j) {
+        for (k = 0; k < K; ++k) {   //scrolls through rows of B
+             storeBCol[k] = B[j*lda+k]; //storing current B column
+        }
         for (k = 0; k < K; ++k) {
             for (i = 0; i < M; ++i) {
-                 C[j*lda + i]+= A[k*lda+i] * B[j*lda+k];
+                 C[j*lda + i]+= A[k*lda+i] * storeBCol[k];
             }
         }
     }
