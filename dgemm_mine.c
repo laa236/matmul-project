@@ -1,7 +1,9 @@
 #include<stdio.h>
+#include<stdalign.h>
 const char* dgemm_desc = "My awesome dgemm.";
 #ifndef BLOCK_SIZE
-#define BLOCK_SIZE ((int) 72)
+#define BLOCK_SIZE ((int) 64)
+#define CACHE_ALIGN __declspec(align(16))
 #endif
 /*void basic_dgemm(const int M, const double *A, const double *B, double *C)
 {
@@ -26,26 +28,29 @@ int i, j, k;
 
 // J = columns of C
 // 
-void basic_dgemm(const int lda, const int M, const int N, const int K,
+void inline basic_dgemm(const int lda, const int M, const int N, const int K,
                  const double* restrict A, const double* restrict B, double* restrict C)
 {
     int i, j, k;
-    double storeBCol[K];
-    for (j = 0; j < N; ++j) {   //scrols through columns of C
-        for (k = 0; k < K; ++k) {   //scrolls through rows of B
-             storeBCol[k] = B[j*lda+k]; //storing current B column
-        }
-        //each column of J uses the same column of B, so store it
+    alignas(64) double storeBCol[K];
+    for (j = 0; j < N; ++j) {   //EVERY ITERATION IS COLUMN OF B AND C
 
-        for (k = 0; k < K; ++k) {
+        for (k = 0; k < K; ++k) {   //GOES DOWN THE COLUMN OF B
+            storeBCol[k] = B[j*lda+k];  //COPIES DOWN A COLUMN OF B
+        }
+
+        for (k = 0; k < K; ++k) {   //goes down the column of B, and row of A
             for (i = 0; i < M; ++i) {
-                 C[j*lda + i]+= A[k*lda+i] * storeBCol[k];
+                C[j*lda + i]+= A[k*lda+i] * storeBCol[k];
+                //C = i -> goes down,                   j -> goes across
+                //A = i -> goes down, k -> goes across,  
+                //B =                 k -> goes down,   j -> goes across  
             }
         }
     }
 }
 
-void do_block(const int lda,
+void inline do_block(const int lda,
               const double* restrict A, const double* restrict B, double* restrict C,
               const int i, const int j, const int k)
 {
