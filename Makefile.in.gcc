@@ -10,7 +10,7 @@ LD=gfortran
 PYTHON=python3
 
 # Compiler optimization flags.  You will definitely want to play with these!
-OPTFLAGS = -O3 -ftree-vectorize -march=native -ffast-math -funroll-loops
+OPTFLAGS = -O3 -ftree-vectorize -march=native -ffast-math -funroll-loops -mavx
 CFLAGS = 
 FFLAGS =
 LDFLAGS = -fopenmp
