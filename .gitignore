@@ -14,3 +14,8 @@ timing-f2c.csv
 timing-basic.csv
 matmul.o
 timing-mine.csv
+dump_diff.txt
+dump_ref.txt
+dump_our.txt
+dgemm_mine.o
+dgemm_basic.o

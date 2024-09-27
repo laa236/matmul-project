@@ -1,22 +1,13 @@
 #include<stdio.h>
 #include<stdalign.h>
+//#include<immintrin.h> // For SSE intrinsics
+//#include<string.h>
 const char* dgemm_desc = "My awesome dgemm.";
 #ifndef BLOCK_SIZE
-#define BLOCK_SIZE ((int) 64)
+#define BLOCK_SIZE ((int) 128)
+// a cache line is 64 bytes, or 8 doubles
 #define CACHE_ALIGN __declspec(align(16))
 #endif
-/*void basic_dgemm(const int M, const double *A, const double *B, double *C)
-{
-int i, j, k;
-	for (j = 0; j < M; ++j) {
-		for (k = 0; k < M; ++k) {
-			for (i = 0; i < M; ++i) {
-				C[i + j*M] += A[k*M + i] * B[k + j*M]; // C[i][j] += A[i][k] * B[k][j] in column-major
-			}
-		}
-	}
-}
-*/
 
 /* matricies are labeled ROW x COL
   A is M-by-K
@@ -32,7 +23,7 @@ void inline basic_dgemm(const int lda, const int M, const int N, const int K,
                  const double* restrict A, const double* restrict B, double* restrict C)
 {
     int i, j, k;
-    alignas(64) double storeBCol[K];
+    double storeBCol[K];
     for (j = 0; j < N; ++j) {   //EVERY ITERATION IS COLUMN OF B AND C
 
         for (k = 0; k < K; ++k) {   //GOES DOWN THE COLUMN OF B
