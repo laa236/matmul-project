@@ -79,4 +79,4 @@ realclean: clean
 	rm -f *~ timing-*.csv timing.pdf
 
 cleanme:
-	rm -f timing-mine.csv matmul-mine 
+	rm -f timing-mine.csv matmul-mine timing.pdf
