@@ -5,7 +5,7 @@
 #include<stdlib.h>
 const char* dgemm_desc = "My awesome dgemm.";
 #ifndef BLOCK_SIZE
-#define BLOCK_SIZE ((int) 64)
+#define BLOCK_SIZE ((int) 32)
 // a cache line is 64 bytes, or 8 doubles
 #define CACHE_ALIGN __declspec(align(16))
 #endif
