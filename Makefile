@@ -71,12 +71,12 @@ plot:
 
 # ---
 
-.PHONY:	clean realclean cleanme
+.PHONY:	clean realclean meclean
 clean:
 	rm -f matmul-* *.o
 
 realclean: clean
 	rm -f *~ timing-*.csv timing.pdf
 
-cleanme:
+meclean:
 	rm -f timing-mine.csv matmul-mine timing.pdf

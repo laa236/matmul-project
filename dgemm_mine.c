@@ -64,16 +64,18 @@ void inline do_block_mine(const int lda,
     // zeroes temp matrices
 
     // all the variables here refrence the dimensions of the original block
-    // always going down column for cache hits
+    // using memcpy to copy columns
     for (int ak = 0; ak < K; ++ak) {
-        for (int am = 0; am < M; ++am) {
-            temp_matrix_A[ak * BLOCK_SIZE + am] = A[(k + ak) * lda + (i + am)];
-        }
+        memcpy(&temp_matrix_A[ak * BLOCK_SIZE], &A[(k + ak) * lda + i], M * sizeof(double));
+        // for (int am = 0; am < M; ++am) {
+        //     temp_matrix_A[ak * BLOCK_SIZE + am] = A[(k + ak) * lda + (i + am)];
+        // }
     }
     for (int bn = 0; bn < N; ++bn) {
-        for (int bk = 0; bk < K; ++bk) {
-            temp_matrix_B[bn * BLOCK_SIZE + bk] = B[(j + bn) * lda + (k + bk)];
-        }
+        memcpy(&temp_matrix_B[bn * BLOCK_SIZE], &B[(j + bn) * lda + k], K * sizeof(double));
+        // for (int bk = 0; bk < K; ++bk) {
+        //     temp_matrix_B[bn * BLOCK_SIZE + bk] = B[(j + bn) * lda + (k + bk)];
+        // }
     }                                   
 
     basic_dgemm(lda, M, N, K,

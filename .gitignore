@@ -19,3 +19,4 @@ dump_ref.txt
 dump_our.txt
 dgemm_mine.o
 dgemm_basic.o
+vec.miss
