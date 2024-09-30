@@ -1,6 +1,6 @@
 #include<stdio.h>
 #include<stdalign.h>
-//#include<immintrin.h> // For SSE intrinsics
+#include<immintrin.h> // For SSE intrinsics
 #include<string.h>
 #include<stdlib.h>
 const char* dgemm_desc = "My awesome dgemm.";
@@ -31,16 +31,24 @@ const char* dgemm_desc = "My awesome dgemm.";
 void inline basic_dgemm(const int lda, const int M, const int N, const int K,
                  double* restrict A, double* restrict B, double* restrict C)
 {
-    int i, j, k;
-    //double storeBCol[BLOCK_SIZE];
+    for (int j = 0; j < BLOCK_SIZE; ++j) {   // Iterate over columns of B and C
+        for (int k = 0; k < BLOCK_SIZE; ++k) { // Iterate down the column of B and row of A
+            // Load the value from B into a vector
+            __m512d b_val = _mm512_set1_pd(B[j * BLOCK_SIZE + k]);
 
-    for (j = 0; j < BLOCK_SIZE; ++j) {   //EVERY ITERATION IS COLUMN OF B AND C
-        for (k = 0; k < BLOCK_SIZE; ++k) {   //goes down the column of B, and row of A
-            for (i = 0; i < BLOCK_SIZE; ++i) {
-                C[j*lda + i] += A[k*BLOCK_SIZE+i] * B[j*BLOCK_SIZE+k];
-                //C = i -> goes down,                   j -> goes across
-                //A = i -> goes down, k -> goes across,  
-                //B =                 k -> goes down,   j -> goes across  
+            // Process 4 rows at a time
+            for (int i = 0; i < BLOCK_SIZE; i += 16) {
+                // Load 4 elements from A
+                __m512d a_vals = _mm512_load_pd(&A[k * BLOCK_SIZE + i]);
+                __m512d a_vals2 = _mm512_load_pd(&A[k * BLOCK_SIZE + i + 8]);
+                __m512d c_vals = _mm512_load_pd(&C[j * lda + i]);
+                __m512d c_vals2 = _mm512_load_pd(&C[j * lda + i + 8]);
+                c_vals = _mm512_fmadd_pd(a_vals, b_val, c_vals);
+                c_vals2 = _mm512_fmadd_pd(a_vals2, b_val, c_vals2);
+
+                // Store the results back to C
+                _mm512_storeu_pd(&C[j * lda + i], c_vals);
+                _mm512_storeu_pd(&C[j * lda + i + 8], c_vals2);
             }
         }
     }
@@ -88,8 +96,8 @@ void square_dgemm(const int M, const double* restrict A, const double* restrict 
     int bi, bj, bk;
     alignas(16) double* temp_matrix_A;
     alignas(16) double* temp_matrix_B;
-    posix_memalign((void**) &temp_matrix_A, 16, BLOCK_SIZE * BLOCK_SIZE * sizeof(double));
-    posix_memalign((void**) &temp_matrix_B, 16, BLOCK_SIZE * BLOCK_SIZE * sizeof(double));
+    posix_memalign((void**) &temp_matrix_A, 64, BLOCK_SIZE * BLOCK_SIZE * sizeof(double));
+    posix_memalign((void**) &temp_matrix_B, 64, BLOCK_SIZE * BLOCK_SIZE * sizeof(double));
 
     for (bi = 0; bi < n_blocks; ++bi) {
         const int i = bi * BLOCK_SIZE;
